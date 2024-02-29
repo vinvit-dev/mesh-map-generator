@@ -3,6 +3,7 @@ use image::io::Reader;
 pub mod buffer;
 pub mod camera;
 pub mod keyboard_handler;
+pub mod polygon_mode;
 pub mod shader;
 pub mod shader_program;
 

@@ -1,6 +1,7 @@
 use app::App;
 
 pub mod app;
+pub mod terrain;
 
 const WINDOW_WIDTH: u32 = 640;
 const WINDOW_HEIGHT: u32 = 480;
