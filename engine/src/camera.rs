@@ -20,12 +20,12 @@ pub struct Camera {
 impl Camera {
     pub fn create_camera(s_width: f32, s_height: f32, sensetivity: f32, speed: f32) -> Self {
         Self {
-            fov: 45.,
+            fov: 90.,
             yaw: -90.,
             pitch: 0.,
             last_x: s_width / 2.,
             last_y: s_height / 2.,
-            pos: glm::vec3(0.0, 0.0, 3.0),
+            pos: glm::vec3(0.0, 2.0, 3.0),
             front: glm::vec3(0.0, 0.0, -1.0),
             up: glm::vec3(0.0, 1.0, 0.0),
             sensetivity,

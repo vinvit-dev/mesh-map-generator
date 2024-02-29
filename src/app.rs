@@ -25,8 +25,8 @@ impl App {
         let mut glfw = glfw::init(fail_on_errors!()).unwrap();
 
         // Set OpenGlLproperties
-        glfw.window_hint(glfw::WindowHint::ContextVersionMajor(3));
-        glfw.window_hint(glfw::WindowHint::ContextVersionMinor(3));
+        glfw.window_hint(glfw::WindowHint::ContextVersionMajor(4));
+        glfw.window_hint(glfw::WindowHint::ContextVersionMinor(4));
         glfw.window_hint(glfw::WindowHint::OpenGlProfile(
             glfw::OpenGlProfileHint::Core,
         ));
@@ -66,7 +66,7 @@ impl App {
     }
 
     pub fn run(&mut self) {
-        let terrain = Terrain::init(100, 100);
+        let terrain = Terrain::init(128, 128);
 
         let mut mode = PolygonMode::Fill;
         while !self.window.should_close() {

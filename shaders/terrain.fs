@@ -2,6 +2,8 @@
 
 out vec4 final_color;
 
+in float out_color;
+
 void main() {
-    final_color = vec4(1.0, 0.5, 0.2, 1.0);
+    final_color = vec4(out_color, out_color + 0.3, out_color, 1.0);
 }
