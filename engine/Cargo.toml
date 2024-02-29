@@ -1,0 +1,11 @@
+[package]
+name = "engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bytemuck = "1.14.3"
+gl = "0.14.0"
+glfw = "0.55.0"
+image = "0.24.9"
+nalgebra-glm = "0.18.0"
