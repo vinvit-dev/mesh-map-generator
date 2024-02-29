@@ -32,17 +32,11 @@ impl Camera {
             speed,
         }
     }
-    pub fn handle_cursor_pos(&mut self, event: glfw::WindowEvent) {
+    pub fn handle_cursor_pos(&mut self, event: &glfw::WindowEvent) {
         match event {
             glfw::WindowEvent::CursorPos(xpos_in, ypos_in) => {
-                let xpos = xpos_in as f32;
-                let ypos = ypos_in as f32;
-
-                // if first_mouse {
-                //     last_x = xpos;
-                //     last_y = ypos;
-                //     first_mouse = false;
-                // }
+                let xpos = xpos_in.clone() as f32;
+                let ypos = ypos_in.clone() as f32;
 
                 let mut xoffset = self.last_x - xpos;
                 let mut yoffset = self.last_y - ypos;
@@ -72,7 +66,7 @@ impl Camera {
             _ => {}
         }
     }
-    pub fn handle_input(&mut self, keyboard_handler: KeyBoardHandler, delta_time: f32) {
+    pub fn handle_input(&mut self, keyboard_handler: &KeyBoardHandler, delta_time: f32) {
         let camera_speed = self.speed * delta_time;
         if keyboard_handler.key_pressed(Key::W) {
             self.pos += camera_speed * self.front;
