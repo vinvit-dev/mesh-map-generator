@@ -1,13 +1,15 @@
+use egui::vec2;
 use engine::{
     camera::Camera,
     clear,
     keyboard_handler::{KeyBoardHandler, KeyBoardHandlerEvent},
     polygon_mode::{polygon_mode, PolygonMode},
     set_clear_color,
+    ui::UserInterface,
 };
 use glfw::{Context, Key};
 
-use crate::terrain::Terrain;
+use crate::terrain::noise::Noise;
 
 pub struct App {
     window: glfw::PWindow,
@@ -16,6 +18,7 @@ pub struct App {
     camera: Camera,
     keyboard_handler: KeyBoardHandler,
     last_frame: f32,
+    ui: UserInterface,
 }
 
 impl App {
@@ -24,36 +27,40 @@ impl App {
         use glfw::fail_on_errors;
         let mut glfw = glfw::init(fail_on_errors!()).unwrap();
 
-        // Set OpenGlLproperties
-        glfw.window_hint(glfw::WindowHint::ContextVersionMajor(4));
-        glfw.window_hint(glfw::WindowHint::ContextVersionMinor(4));
+        // Init windo
+        glfw.window_hint(glfw::WindowHint::ContextVersion(3, 2));
         glfw.window_hint(glfw::WindowHint::OpenGlProfile(
             glfw::OpenGlProfileHint::Core,
         ));
+        glfw.window_hint(glfw::WindowHint::DoubleBuffer(true));
+        glfw.window_hint(glfw::WindowHint::Resizable(false));
 
-        // Init window
         let (mut window, events) = glfw
             .create_window(s_width, s_height, title, glfw::WindowMode::Windowed)
             .expect("Fail to create widnow");
         window.make_current();
 
-        window.set_key_polling(true);
+        window.set_char_polling(true);
         window.set_cursor_pos_polling(true);
+        window.set_key_polling(true);
+        window.set_mouse_button_polling(true);
+        glfw.set_swap_interval(glfw::SwapInterval::Sync(1));
+
         window.set_framebuffer_size_callback(move |_, width, height| unsafe {
             gl::Viewport(0, 0, width, height);
         });
-        window.set_cursor_mode(glfw::CursorMode::Disabled);
+        // window.set_cursor_mode(glfw::CursorMode::Disabled);
 
         // Init OpenGL
         gl::load_with(|f_name| glfw.get_proc_address_raw(f_name));
-
-        unsafe { gl::Enable(gl::DEPTH_TEST) }
 
         set_clear_color(0.1, 0.1, 0.1, 1.0);
 
         let camera = Camera::create_camera(s_width as f32, s_height as f32, 0.1, 1.0);
         let keyboard_handler = KeyBoardHandler::new();
         let last_frame = glfw.get_time() as f32;
+
+        let ui = UserInterface::new(&mut window);
 
         Self {
             window,
@@ -62,14 +69,25 @@ impl App {
             camera,
             keyboard_handler,
             last_frame,
+            ui,
         }
     }
 
     pub fn run(&mut self) {
-        let terrain = Terrain::init(128, 128);
-
         let mut mode = PolygonMode::Fill;
+        let mut noise = Noise::new(256, 256, 12, 27.0, 4, 0.5, 2.0, vec2(0.12, 0.4));
+        noise.generate();
+
         while !self.window.should_close() {
+            self.ui.begin();
+
+            set_clear_color(0.1, 0.1, 0.1, 1.0);
+            clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
+            noise.draw_ui(&self.ui.ctx, &mut self.ui.painter);
+
+            self.ui.end();
+
             let time = self.glfw.get_time() as f32;
             let delta_time = time - self.last_frame;
             self.last_frame = time;
@@ -79,15 +97,18 @@ impl App {
                         mode = PolygonMode::turn(mode);
                         polygon_mode(mode);
                     }
-                    _ => {}
+                    _ => {
+                        self.ui.handle_event(&event);
+                        App::keyboard_input_handler(
+                            &mut self.window,
+                            &mut self.keyboard_handler,
+                            &event,
+                        );
+                        self.camera.handle_input(&self.keyboard_handler, delta_time);
+                        self.camera.handle_cursor_pos(&event);
+                    }
                 }
-                App::keyboard_input_handler(&mut self.window, &mut self.keyboard_handler, &event);
-                self.camera.handle_input(&self.keyboard_handler, delta_time);
-                self.camera.handle_cursor_pos(&event);
             }
-
-            clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-            terrain.render(&self.camera);
 
             self.window.swap_buffers();
             self.glfw.poll_events();
