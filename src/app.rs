@@ -9,7 +9,7 @@ use engine::{
 };
 use glfw::{Context, Key};
 
-use crate::terrain::noise::Noise;
+use crate::terrain::{noise::Noise, Terrain};
 
 pub struct App {
     window: glfw::PWindow,
@@ -49,7 +49,7 @@ impl App {
         window.set_framebuffer_size_callback(move |_, width, height| unsafe {
             gl::Viewport(0, 0, width, height);
         });
-        // window.set_cursor_mode(glfw::CursorMode::Disabled);
+        window.set_cursor_mode(glfw::CursorMode::Disabled);
 
         // Init OpenGL
         gl::load_with(|f_name| glfw.get_proc_address_raw(f_name));
@@ -75,15 +75,22 @@ impl App {
 
     pub fn run(&mut self) {
         let mut mode = PolygonMode::Fill;
-        let mut noise = Noise::new(256, 256, 12, 27.0, 4, 0.5, 2.0, vec2(0.12, 0.4));
+        let mut noise = Noise::new(64, 64, 12, 27.0, 4, 0.5, 2.0, vec2(0.12, 0.4));
         noise.generate();
+        let mut terrain = Terrain::init();
+        terrain.update(&mut noise);
 
         while !self.window.should_close() {
             self.ui.begin();
 
             set_clear_color(0.1, 0.1, 0.1, 1.0);
             clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+            if noise.updated {
+                terrain.update(&mut noise);
+                noise.updated = false;
+            }
 
+            terrain.render(&self.camera, &self.window);
             noise.draw_ui(&self.ui.ctx, &mut self.ui.painter);
 
             self.ui.end();
@@ -124,6 +131,12 @@ impl App {
         match keyboard_event {
             Some(KeyBoardHandlerEvent::Pressed(Key::Escape)) => {
                 window.set_should_close(true);
+            }
+            Some(KeyBoardHandlerEvent::Pressed(Key::K)) => {
+                window.set_cursor_mode(glfw::CursorMode::Normal);
+            }
+            Some(KeyBoardHandlerEvent::Pressed(Key::H)) => {
+                window.set_cursor_mode(glfw::CursorMode::Disabled);
             }
             _ => {}
         }

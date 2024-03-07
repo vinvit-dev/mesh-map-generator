@@ -1,5 +1,6 @@
 use egui::{emath::inverse_lerp, lerp, vec2, Color32, TextureId, Vec2};
 use image::{ImageBuffer, Rgb};
+use perlin_noise::PerlinNoise;
 use rand::{thread_rng, Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
@@ -25,8 +26,9 @@ impl NoiseMap {
     }
 }
 
-#[derive(Default)]
+#[derive()]
 pub struct Noise {
+    pub perlin_noise: PerlinNoise,
     pub image: Option<ImageBuffer<Rgb<u8>, Vec<u8>>>,
     pub noise_map: NoiseMap,
     pub map_width: u32,
@@ -39,6 +41,7 @@ pub struct Noise {
     pub offset: Vec2,
     pub texture: Option<TextureId>,
     pub color_map: Option<TextureId>,
+    pub updated: bool,
 }
 
 impl Noise {
@@ -62,7 +65,11 @@ impl Noise {
             persistance,
             lacunarity,
             offset,
-            ..Default::default()
+            perlin_noise: PerlinNoise::new(),
+            noise_map: NoiseMap::default(),
+            texture: None,
+            color_map: None,
+            updated: false,
         }
     }
 
@@ -79,8 +86,6 @@ impl Noise {
         let mut seed: <ChaCha8Rng as SeedableRng>::Seed = Default::default();
         thread_rng().fill(&mut seed);
         let mut rng = ChaCha8Rng::from_seed(seed);
-
-        let perlin = perlin_noise::PerlinNoise::new();
 
         for _ in 0..self.octaves as usize {
             let offset_x = rng.gen_range(-10000..100000) + self.offset.x as i32;
@@ -101,7 +106,8 @@ impl Noise {
                     let sample_y =
                         (z) as f64 / self.scale * frequency as f64 + octaves_offsets[i].x as f64;
 
-                    let perlin_value = perlin.get2d([sample_x, sample_y]) as f32 * 2. - 1.;
+                    let perlin_value =
+                        self.perlin_noise.get2d([sample_x, sample_y]) as f32 * 2. - 1.;
                     noise_height += perlin_value * amplitude;
                     amplitude *= self.persistance;
                     frequency *= self.lacunarity;
@@ -130,6 +136,7 @@ impl Noise {
         self.image = Some(self.noise_map.to_image());
         self.texture = None;
         self.color_map = None;
+        self.updated = true;
     }
     pub fn to_texture(&mut self, painter: &mut egui_gl_glfw::Painter) {
         let mut srgba = vec![Color32::BLACK; (self.map_height * self.map_width) as usize];
@@ -151,6 +158,22 @@ impl Noise {
         painter.update_user_texture_data(&plot_tex_id, &srgba);
         self.texture = Some(plot_tex_id);
     }
+    pub fn get_color_for_height(height: f32) -> Color32 {
+        let mut color_val = Color32::BLACK;
+        if height > -1.0 && height < 0.5 {
+            color_val = Color32::BLUE;
+        } else if height > 0.5 && height < 0.55 {
+            color_val = Color32::YELLOW;
+        } else if height > 0.55 && height < 0.8 {
+            color_val = Color32::GREEN;
+        } else if height > 0.8 && height < 0.9 {
+            color_val = Color32::BROWN;
+        } else if height > 0.9 {
+            color_val = Color32::WHITE;
+        }
+        color_val
+    }
+
     pub fn to_color_map(&mut self, painter: &mut egui_gl_glfw::Painter) {
         let mut srgba = vec![Color32::BLACK; (self.map_height * self.map_width) as usize];
 
@@ -163,22 +186,17 @@ impl Noise {
         for x in 0..self.map_width {
             for y in 0..self.map_height {
                 let height = self.noise_map.data[x as usize][y as usize];
-                let mut color_val = Color32::BLACK;
-                if height > 0.0 && height < 0.4 {
-                    color_val = Color32::BLUE;
-                } else if height > 0.4 && height < 0.5 {
-                    color_val = Color32::YELLOW;
-                } else if height > 0.5 && height < 0.7 {
-                    color_val = Color32::GREEN;
-                } else if height > 0.7 && height < 0.9 {
-                    color_val = Color32::BROWN;
-                } else if height > 0.9 {
-                    color_val = Color32::WHITE;
-                }
+                let color_val = Noise::get_color_for_height(height);
 
-                srgba[(x * self.map_width + y) as usize] = color_val;
+                srgba[(x * self.map_width + y) as usize] = Color32::from_rgba_unmultiplied(
+                    color_val.r(),
+                    color_val.g(),
+                    color_val.b(),
+                    color_val.a(),
+                );
             }
         }
+
         painter.update_user_texture_data(&plot_tex_id, &srgba);
         self.color_map = Some(plot_tex_id);
     }
@@ -191,7 +209,7 @@ impl Noise {
             self.to_color_map(&mut painter);
         }
 
-        egui::SidePanel::new(egui::panel::Side::Left, "Noise Generator").show(ctx, |ui| {
+        egui::Window::new("Noise Generator").show(ctx, |ui| {
             let mut notify = vec![];
             ui.vertical(|ui| {
                 ui.label("Noice params");
