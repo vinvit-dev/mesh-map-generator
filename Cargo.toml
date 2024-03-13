@@ -8,15 +8,13 @@ members = ["engine"]
 
 
 [dependencies]
-engine = { path = "./engine" }
+engine = { path = "../engine" }
 bytemuck = "1.14.3"
 gl = "0.14.0"
 glfw = "0.55.0"
-image = "0.24.9"
+image = "0.25.0"
 nalgebra-glm = "0.18.0"
-ds-heightmap = "0.2.1"
 egui_gl_glfw = "0.1.1"
 egui = "0.26.2"
-perlin_noise = "1.0.1"
-rand = "0.8.5"
-rand_chacha = "0.3.1"
+cgl-rs = "0.1.7"
+seeded-random = "0.6.0"

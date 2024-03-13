@@ -75,14 +75,12 @@ impl App {
 
     pub fn run(&mut self) {
         let mut mode = PolygonMode::Fill;
-        let mut noise = Noise::new(64, 64, 12, 27.0, 4, 0.5, 2.0, vec2(0.12, 0.4));
+        let mut noise = Noise::new(128, 128, 12, 27.0, 4, 0.5, 2.0, vec2(0.12, 0.4));
         noise.generate();
         let mut terrain = Terrain::init();
         terrain.update(&mut noise);
 
         while !self.window.should_close() {
-            self.ui.begin();
-
             set_clear_color(0.1, 0.1, 0.1, 1.0);
             clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             if noise.updated {
@@ -90,10 +88,11 @@ impl App {
                 noise.updated = false;
             }
 
+            polygon_mode(mode);
             terrain.render(&self.camera, &self.window);
-            noise.draw_ui(&self.ui.ctx, &mut self.ui.painter);
 
-            self.ui.end();
+            polygon_mode(PolygonMode::Fill);
+            self.ui.render(vec![Box::new(&mut noise)]);
 
             let time = self.glfw.get_time() as f32;
             let delta_time = time - self.last_frame;
@@ -102,7 +101,7 @@ impl App {
                 match event {
                     glfw::WindowEvent::Key(Key::P, _, glfw::Action::Press, _) => {
                         mode = PolygonMode::turn(mode);
-                        polygon_mode(mode);
+                        // polygon_mode(mode);
                     }
                     _ => {
                         self.ui.handle_event(&event);

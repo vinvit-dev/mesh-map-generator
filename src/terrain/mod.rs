@@ -1,18 +1,18 @@
 use std::mem::size_of;
 
-use egui::{emath::inverse_lerp, vec2, Vec2};
+use egui::emath::inverse_lerp;
 use engine::{
     buffer::{buffer_data, Buffer, BufferType, VertexArray},
     camera::Camera,
-    shader_program::{self, ShaderProgram, Uniform},
+    shader_program::{ShaderProgram, Uniform},
 };
 use glfw::PWindow;
 use nalgebra_glm as glm;
-use nalgebra_glm::{vec3, U32Vec3, Vec3};
 
 use self::noise::Noise;
 
 pub mod noise;
+pub mod noise_ui;
 
 type VERTICE = [f32; 3 + 3];
 
@@ -43,15 +43,15 @@ impl Terrain {
         let width = noise.map_width;
         let height = noise.map_height;
 
-        let top_left_x = (width - 1) as f32 / -2.;
-        let top_left_z = (height - 1) as f32 / 2.;
+        // let top_left_x = (width - 1) as f32 / -2.;
+        // let top_left_z = (height - 1) as f32 / 2.;
 
         let mut mesh_data = MeshData {
             vertices: vec![],
             triangles: vec![],
             triangle_index: 0,
         };
-        let mut vertex_index = 0 as usize;
+        // let mut vertex_index = 0 as usize;
 
         for x in 0..(width - 1) as usize {
             for y in 0..(height - 1) as usize {
@@ -154,7 +154,7 @@ impl Terrain {
                 //     //     vertex_index + width as usize + 1,
                 //     // );
                 // }
-                vertex_index += 1;
+                // vertex_index += 1;
             }
         }
         mesh_data
@@ -235,10 +235,6 @@ pub struct MeshData {
 
 impl MeshData {
     pub fn add_triangle(&mut self, a: usize, b: usize, c: usize) {
-        // self.triangles[self.triangle_index] = a;
-        // self.triangles[self.triangle_index + 1] = b;
-        // self.triangles[self.triangle_index + 2] = c;
-        // self.triangle_index += 3;
         self.triangles.push(a);
         self.triangles.push(b);
         self.triangles.push(c);
