@@ -30,10 +30,10 @@ impl DrawUserInterface for Noise {
                 notify.push(ui.add(egui::Slider::new(&mut self.seed, 1..=100).text("Seed")));
                 ui.horizontal(|ui| {
                     notify.push(
-                        ui.add(egui::Slider::new(&mut self.offset.x, 1.0..=100.).text("Offset X")),
+                        ui.add(egui::Slider::new(&mut self.offset.x, 1.0..=10.).text("Offset X")),
                     );
                     notify.push(
-                        ui.add(egui::Slider::new(&mut self.offset.y, 1.0..=100.).text("Offset Y")),
+                        ui.add(egui::Slider::new(&mut self.offset.y, 1.0..=10.).text("Offset Y")),
                     );
                 });
                 if ui.button("Generate").clicked() {

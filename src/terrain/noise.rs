@@ -88,8 +88,8 @@ impl Noise {
         // let mut rng = ChaCha8Rng::from_seed(seed);
 
         for _ in 0..self.octaves as usize {
-            let offset_x = rng.range(0, 100000) as i32 + self.offset.x as i32;
-            let offset_y = rng.range(0, 100000) as i32 + self.offset.y as i32;
+            let offset_x = rng.range(0, 100000) as f32 + self.offset.x;
+            let offset_y = rng.range(0, 100000) as f32 + self.offset.y;
             // let offset_x = self.offset.x as i32;
             // let offset_y = self.offset.y as i32;
             octaves_offsets.push(vec2(offset_x as f32, offset_y as f32));
@@ -103,14 +103,13 @@ impl Noise {
                 let mut noise_height: f32 = 0.;
 
                 for i in 0..self.octaves as usize {
-                    let sample_x = (x - half_width) as f64 / self.scale * frequency as f64
-                        + octaves_offsets[i].x as f64;
-                    let sample_y = (z - half_height) as f64 / self.scale * frequency as f64
-                        + octaves_offsets[i].y as f64;
+                    let sample_x = (x - half_width) as f32 / self.scale as f32 * frequency as f32
+                        + octaves_offsets[i].x;
+                    let sample_y = (z - half_height) as f32 / self.scale as f32 * frequency as f32
+                        + octaves_offsets[i].y;
 
                     cgl_rs::noise::init();
-                    let perlin_value =
-                        cgl_rs::noise::perlin(sample_x as f32, sample_y as f32, 0.0) * 2. - 1.;
+                    let perlin_value = cgl_rs::noise::perlin(sample_x, sample_y, 0.0) * 2. - 1.;
                     cgl_rs::noise::shutdown();
                     // let perlin_value = cgl_rs::noise::perlin(sample_x, sample_y, 0.);
                     // let perlin_value =
@@ -168,13 +167,13 @@ impl Noise {
     pub fn get_color_for_height(height: f32) -> Color32 {
         let mut color_val = Color32::BLACK;
         if height > -1.0 && height < 0.5 {
-            color_val = Color32::BLUE;
+            color_val = Color32::from_rgb(5, 67, 166);
         } else if height > 0.5 && height < 0.55 {
-            color_val = Color32::YELLOW;
+            color_val = Color32::from_rgb(174, 184, 83);
         } else if height > 0.55 && height < 0.8 {
-            color_val = Color32::GREEN;
+            color_val = Color32::from_rgb(26, 145, 38);
         } else if height > 0.8 && height < 0.9 {
-            color_val = Color32::BROWN;
+            color_val = Color32::from_rgb(74, 43, 27);
         } else if height > 0.9 {
             color_val = Color32::WHITE;
         }

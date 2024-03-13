@@ -59,8 +59,8 @@ impl Terrain {
                 let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
                 let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
                 let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
+                point_height = if point_height <= 0.52 {
+                    0.52
                 } else {
                     point_height
                 };

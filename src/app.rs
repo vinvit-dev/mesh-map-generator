@@ -54,7 +54,7 @@ impl App {
         // Init OpenGL
         gl::load_with(|f_name| glfw.get_proc_address_raw(f_name));
 
-        set_clear_color(0.1, 0.1, 0.1, 1.0);
+        set_clear_color(0.7, 0.7, 1.0, 1.0);
 
         let camera = Camera::create_camera(s_width as f32, s_height as f32, 0.1, 1.0);
         let keyboard_handler = KeyBoardHandler::new();
@@ -81,7 +81,6 @@ impl App {
         terrain.update(&mut noise);
 
         while !self.window.should_close() {
-            set_clear_color(0.1, 0.1, 0.1, 1.0);
             clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             if noise.updated {
                 terrain.update(&mut noise);
