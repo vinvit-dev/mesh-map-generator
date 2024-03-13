@@ -43,18 +43,17 @@ impl Terrain {
         let width = noise.map_width;
         let height = noise.map_height;
 
-        // let top_left_x = (width - 1) as f32 / -2.;
-        // let top_left_z = (height - 1) as f32 / 2.;
+        let top_left_x = (width - 1) as f32 / -2.;
+        let top_left_z = (height - 1) as f32 / 2.;
 
         let mut mesh_data = MeshData {
             vertices: vec![],
             triangles: vec![],
-            triangle_index: 0,
         };
-        // let mut vertex_index = 0 as usize;
+        let mut vertex_index = 0 as usize;
 
-        for x in 0..(width - 1) as usize {
-            for y in 0..(height - 1) as usize {
+        for x in 0..width as usize {
+            for y in 0..height as usize {
                 let mut point_height = noise.noise_map.data[x][y];
                 let color = Noise::get_color_for_height(point_height);
                 let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
@@ -65,96 +64,27 @@ impl Terrain {
                 } else {
                     point_height
                 };
-                // mesh_data.vertices.push([
-                //     x as f32,
-                //     point_height,
-                //     y as f32,
-                //     // r as f32,
-                //     // g as f32,
-                //     // b as f32,
-                // ]);
-                mesh_data
-                    .vertices
-                    .push([x as f32, point_height, y as f32, r, g, b]);
-                let mut point_height = noise.noise_map.data[x + 1][y];
-                let color = Noise::get_color_for_height(point_height);
-                let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
-                let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
-                let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
-                } else {
-                    point_height
-                };
-                mesh_data
-                    .vertices
-                    .push([x as f32 + 1., point_height, y as f32, r, g, b]);
-                let mut point_height = noise.noise_map.data[x][y + 1];
-                let color = Noise::get_color_for_height(point_height);
-                let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
-                let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
-                let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
-                } else {
-                    point_height
-                };
-                mesh_data
-                    .vertices
-                    .push([x as f32, point_height, y as f32 + 1., r, g, b]);
-                let mut point_height = noise.noise_map.data[x + 1][y + 1];
-                let color = Noise::get_color_for_height(point_height);
-                let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
-                let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
-                let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
-                } else {
-                    point_height
-                };
-                mesh_data
-                    .vertices
-                    .push([x as f32 + 1., point_height, y as f32 + 1., r, g, b]);
-                let mut point_height = noise.noise_map.data[x + 1][y];
-                let color = Noise::get_color_for_height(point_height);
-                let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
-                let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
-                let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
-                } else {
-                    point_height
-                };
-                mesh_data
-                    .vertices
-                    .push([x as f32 + 1., point_height, y as f32, r, g, b]);
-                let mut point_height = noise.noise_map.data[x][y + 1];
-                let color = Noise::get_color_for_height(point_height);
-                let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
-                let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
-                let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height < 0.5 {
-                    0.5
-                } else {
-                    point_height
-                };
-                mesh_data
-                    .vertices
-                    .push([x as f32, point_height, y as f32 + 1., r, g, b]);
-
-                // if x < width as usize - 1 && y < height as usize - 1 {
-                //     mesh_data.add_triangle(
-                //         vertex_index,
-                //         vertex_index + 1,
-                //         vertex_index + width as usize + 1,
-                //     );
-                //     // mesh_data.add_triangle(
-                //     //     vertex_index + 1,
-                //     //     vertex_index + width as usize,
-                //     //     vertex_index + width as usize + 1,
-                //     // );
-                // }
-                // vertex_index += 1;
+                mesh_data.vertices.push([
+                    x as f32 + top_left_x,
+                    point_height,
+                    top_left_z - y as f32,
+                    r,
+                    g,
+                    b,
+                ]);
+                if x < width as usize - 1 && y < height as usize - 1 {
+                    mesh_data.add_triangle(
+                        vertex_index,
+                        vertex_index + width as usize + 1,
+                        vertex_index + width as usize,
+                    );
+                    mesh_data.add_triangle(
+                        vertex_index + width as usize + 1,
+                        vertex_index,
+                        vertex_index + 1,
+                    );
+                }
+                vertex_index += 1;
             }
         }
         mesh_data
@@ -189,12 +119,12 @@ impl Terrain {
             );
             gl::EnableVertexAttribArray(1);
         };
-        // self.ebo.bind(BufferType::ElementArray);
-        // buffer_data(
-        //     BufferType::ElementArray,
-        //     bytemuck::cast_slice(mesh_data.triangles.as_slice()),
-        //     gl::STATIC_DRAW,
-        // );
+        self.ebo.bind(BufferType::ElementArray);
+        buffer_data(
+            BufferType::ElementArray,
+            bytemuck::cast_slice(mesh_data.triangles.as_slice()),
+            gl::STATIC_DRAW,
+        );
     }
 
     pub fn render(&mut self, camera: &Camera, window: &PWindow) {
@@ -220,8 +150,7 @@ impl Terrain {
         self.shader_program
             .set_uniform("projection", Uniform::Mat4(projection));
         unsafe { gl::Enable(gl::DEPTH_TEST) };
-        // unsafe { gl::DrawElements(gl::TRIANGLES, 1000, gl::UNSIGNED_INT, 0 as *const _) }
-        unsafe { gl::DrawArrays(gl::TRIANGLES, 0, 230000) }
+        unsafe { gl::DrawElements(gl::TRIANGLES, 100000, gl::UNSIGNED_INT, 0 as *const _) };
         unsafe { gl::Disable(gl::DEPTH_TEST) };
     }
 }
@@ -229,14 +158,13 @@ impl Terrain {
 #[derive(Default)]
 pub struct MeshData {
     pub vertices: Vec<VERTICE>,
-    pub triangles: Vec<usize>,
-    pub triangle_index: usize,
+    pub triangles: Vec<i32>,
 }
 
 impl MeshData {
     pub fn add_triangle(&mut self, a: usize, b: usize, c: usize) {
-        self.triangles.push(a);
-        self.triangles.push(b);
-        self.triangles.push(c);
+        self.triangles.push(a as i32);
+        self.triangles.push(b as i32);
+        self.triangles.push(c as i32);
     }
 }

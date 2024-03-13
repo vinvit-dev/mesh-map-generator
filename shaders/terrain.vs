@@ -10,6 +10,7 @@ uniform mat4 projection;
 out vec3 out_color;
 
 void main() {
-    gl_Position = projection * model * view * vec4(pos.x / 2, pos.y * 5, pos.z / 2, 1.0);
+    float scale = 0.2;
+    gl_Position = projection * model * view * vec4(pos.x * scale, pos.y * 5, pos.z * scale, 1.0);
     out_color = color;
 }
