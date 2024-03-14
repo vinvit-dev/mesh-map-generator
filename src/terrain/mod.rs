@@ -20,6 +20,7 @@ pub struct Terrain {
     pub vao: VertexArray,
     pub vbo: Buffer,
     pub ebo: Buffer,
+    pub mesh_data: Option<MeshData>,
     pub shader_program: ShaderProgram,
 }
 
@@ -36,6 +37,7 @@ impl Terrain {
             vbo,
             ebo,
             shader_program,
+            mesh_data: None,
         }
     }
 
@@ -59,8 +61,8 @@ impl Terrain {
                 let r = inverse_lerp(0.0..=255.0, color.r() as f32).unwrap();
                 let g = inverse_lerp(0.0..=255.0, color.g() as f32).unwrap();
                 let b = inverse_lerp(0.0..=255.0, color.b() as f32).unwrap();
-                point_height = if point_height <= 0.52 {
-                    0.52
+                point_height = if point_height <= 0.50 {
+                    0.50
                 } else {
                     point_height
                 };
@@ -75,11 +77,11 @@ impl Terrain {
                 if x < width as usize - 1 && y < height as usize - 1 {
                     mesh_data.add_triangle(
                         vertex_index,
-                        vertex_index + width as usize + 1,
-                        vertex_index + width as usize,
+                        vertex_index + height as usize + 1,
+                        vertex_index + height as usize,
                     );
                     mesh_data.add_triangle(
-                        vertex_index + width as usize + 1,
+                        vertex_index + height as usize + 1,
                         vertex_index,
                         vertex_index + 1,
                     );
@@ -99,6 +101,7 @@ impl Terrain {
             bytemuck::cast_slice(mesh_data.vertices.as_slice()),
             gl::STATIC_DRAW,
         );
+        self.mesh_data = Some(mesh_data.clone());
         unsafe {
             gl::VertexAttribPointer(
                 0,
@@ -150,12 +153,19 @@ impl Terrain {
         self.shader_program
             .set_uniform("projection", Uniform::Mat4(projection));
         unsafe { gl::Enable(gl::DEPTH_TEST) };
-        unsafe { gl::DrawElements(gl::TRIANGLES, 100000, gl::UNSIGNED_INT, 0 as *const _) };
+        unsafe {
+            gl::DrawElements(
+                gl::TRIANGLES,
+                self.mesh_data.clone().unwrap().triangles.len() as i32,
+                gl::UNSIGNED_INT,
+                0 as *const _,
+            )
+        };
         unsafe { gl::Disable(gl::DEPTH_TEST) };
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MeshData {
     pub vertices: Vec<VERTICE>,
     pub triangles: Vec<i32>,

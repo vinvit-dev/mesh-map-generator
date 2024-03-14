@@ -109,11 +109,8 @@ impl Noise {
                         + octaves_offsets[i].y;
 
                     cgl_rs::noise::init();
-                    let perlin_value = cgl_rs::noise::perlin(sample_x, sample_y, 0.0) * 2. - 1.;
+                    let perlin_value = cgl_rs::noise::perlin(sample_x, sample_y, 12.0) * 2. - 1.;
                     cgl_rs::noise::shutdown();
-                    // let perlin_value = cgl_rs::noise::perlin(sample_x, sample_y, 0.);
-                    // let perlin_value =
-                    //     self.perlin_noise.get2d([sample_x, sample_y]) as f32 * 2. - 1.;
                     noise_height += perlin_value * amplitude;
                     amplitude *= self.persistance;
                     frequency *= self.lacunarity;
@@ -157,7 +154,7 @@ impl Noise {
             for y in 0..self.map_height {
                 let color_val =
                     lerp(0.0..=255.0, self.noise_map.data[x as usize][y as usize]).round() as u8;
-                srgba[(x * self.map_width + y) as usize] =
+                srgba[(y * self.map_width + x) as usize] =
                     Color32::from_rgb(color_val, color_val, color_val);
             }
         }
@@ -194,7 +191,7 @@ impl Noise {
                 let height = self.noise_map.data[x as usize][y as usize];
                 let color_val = Noise::get_color_for_height(height);
 
-                srgba[(x * self.map_width + y) as usize] = Color32::from_rgba_unmultiplied(
+                srgba[(y * self.map_width + x) as usize] = Color32::from_rgba_unmultiplied(
                     color_val.r(),
                     color_val.g(),
                     color_val.b(),
